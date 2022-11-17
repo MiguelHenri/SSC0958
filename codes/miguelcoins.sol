@@ -6,7 +6,7 @@ pragma solidity ^0.5.0;
 contract miguelcoin_ico {
 
     // Imprimindo o número máximo de miguelcoins à venda
-    uint public max_miguelcoins = 1000000;
+    uint public max_miguelcoins = 1000000000000;
 
     // Imprimindo a taxa de conversão de USD para miguelcoins
     uint public usd_to_miguelcoins = 13671894;
