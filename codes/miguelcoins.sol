@@ -1,4 +1,5 @@
-// Code based on jocoins ICO https://github.com/hagenderouen/mini-chain/blob/master/hadcoins_ico.sol
+// Code based on https://github.com/hagenderouen/mini-chain/blob/master/hadcoins_ico.sol 
+// and https://github.com/joueyama/blockchain/blob/main/jocoin.sol
 
 // Version of compiler
 pragma solidity ^0.5.0;
