@@ -17,7 +17,7 @@ contract SDC {
         uint votes;
         bool active;
         bool received_string;
-        objection[] objections;
+        objection[100] objections; //max 100 objections by now
         uint current_objections;
     }
 
@@ -67,6 +67,7 @@ contract SDC {
     can_set_affirmation(new_a.received_string) is_owner() {
         new_a.received_string = true; //will not accept string changes
         new_a.a_string = _s;
+        new_a.objections[new_a.current_objections].exist = true;
     }
 
     function get_statement(uint _num) external view 
@@ -116,6 +117,7 @@ contract SDC {
 
     function delete_objection(uint _num) private
     objection_exist(_num) {
+        /*will be called privately by contract when objection timestamp is done*/
         new_a.current_objections -= 1;
         new_a.objections[_num].o_owner = address(0);
         new_a.objections[_num].o_string = "";
