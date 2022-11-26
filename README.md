@@ -1,2 +1,1 @@
 # Solidity Codes
-solidity enthusiast
