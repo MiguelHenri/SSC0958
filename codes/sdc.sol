@@ -2,8 +2,11 @@
 // Version of compiler
 pragma solidity >=0.7.0 <0.9.0;
 
+//contract sdc platform??
+//responsable of deleting objections and transferring coins
+
 //contract == new affirmation
-contract SDC {
+contract sdc {
     
     struct objection {
         address o_owner;
@@ -16,7 +19,6 @@ contract SDC {
         string a_string;
         uint votes;
         bool active;
-        bool received_string;
         objection[100] objections; //max 100 objections by now
         uint current_objections;
     }
@@ -29,18 +31,14 @@ contract SDC {
     uint public createdAt;
     affirmation new_a; //contract main affirmation
 
-    constructor() { 
+    constructor(string memory _str) { 
         owner = msg.sender;
         createdAt = block.timestamp;
         new_a.votes = 0; //start with no votes
         new_a.active = true; //active during timestamp
-        new_a.received_string = false; //string was not set yet
+        new_a.a_string = _str;
+        new_a.objections[0].exist = true;
         new_a.current_objections = 0; //0 current objections
-    }
-
-    modifier can_set_affirmation(bool _received) {
-        require(_received == false, "already set affirmation");
-        _;
     }
 
     modifier is_owner() {
@@ -63,13 +61,6 @@ contract SDC {
         _;
     }
 
-    function set_affirmation(string memory _s) external
-    can_set_affirmation(new_a.received_string) is_owner() {
-        new_a.received_string = true; //will not accept string changes
-        new_a.a_string = _s;
-        new_a.objections[new_a.current_objections].exist = true;
-    }
-
     function get_statement(uint _num) external view 
     objection_exist(_num) returns(string memory) {
         if(_num == 0){
@@ -82,6 +73,7 @@ contract SDC {
 
     function vote(uint _num) public 
     objection_exist(_num) can_vote(_num) {
+        //address cannot vote for another objection
         if(_num == 0){
             new_a.votes += 1;
         }
@@ -119,9 +111,6 @@ contract SDC {
     objection_exist(_num) {
         /*will be called privately by contract when objection timestamp is done*/
         new_a.current_objections -= 1;
-        new_a.objections[_num].o_owner = address(0);
-        new_a.objections[_num].o_string = "";
-        new_a.objections[_num].votes = 0;
         new_a.objections[_num].exist = false;
     }
 }
