@@ -3,7 +3,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 //contract sdc platform??
-//responsable of deleting objections and transferring coins
+//sdc v2: only affirmation and one objection
 
 //contract == new affirmation
 contract sdc {
@@ -21,8 +21,8 @@ contract sdc {
         string a_string;            // who stated this affirmation
         address[] votes;            // who has voted for this one
         bool active;                // is active?
-        objection[100] objections;  // max 100 objections by now
-        uint current_objections;    // current objections
+        objection objection;        // 1 objection by now
+        uint current_objections;    // number of current objections
     }
 
     //addresses (users) will have both data
@@ -45,11 +45,10 @@ contract sdc {
         createdAt = block.timestamp;
         new_a.active = true; //active during timestamp
         new_a.a_string = _str;
-        new_a.objections[0].exist = true;
         new_a.current_objections = 0; //0 current objections
         contract_value = 5;
-        closedAt = createdAt + 2 days;
-        //closedAt = createdAt + 20 seconds; //just for testing
+        //closedAt = createdAt + 2 days;
+        closedAt = createdAt + 1 minutes; //just for testing
     }
 
     modifier is_owner() {
@@ -63,7 +62,7 @@ contract sdc {
     }
 
     modifier objection_exist(uint _num) {
-        require(new_a.objections[_num].exist == true, "objection does not exist");
+        require(new_a.objection.exist == true, "objection does not exist");
         _;
     }
 
@@ -72,19 +71,32 @@ contract sdc {
         _;
     }
 
+    modifier active {
+        require(new_a.active == true, "affirmation time is done");
+        _;
+    }
+
+    function get_money_owned(address _adr) external view returns (uint){
+        return money_owned[_adr];
+    }
+
     function get_statement(uint _num) external view
     objection_exist(_num) returns(string memory) {
         if(_num == 0){
             return new_a.a_string; //returns main affirmation
         }
         else{
-            return new_a.objections[_num].o_string; //returns objection[_num]
+            return new_a.objection.o_string; //returns objection
         }
     }
 
     function vote(uint _num) public payable
-    objection_exist(_num) can_vote(_num) {
+    objection_exist(_num) can_vote(_num) active() {
         require(msg.value == 1, "To vote you should pay 1 wei"); // owner needs the money to vote
+
+        // tests: is the affirmation done? should I pay the winners?
+        should_pay();
+
         if(already_voted[msg.sender] == false)
             contract_value += 1;
         //address cannot vote for another objection
@@ -92,7 +104,7 @@ contract sdc {
             new_a.votes.push(msg.sender);
         }
         else{
-            new_a.objections[_num].votes.push(msg.sender);
+            new_a.objection.votes.push(msg.sender);
         }
         already_voted[msg.sender] = true;
         statement_voted[msg.sender] = _num;
@@ -105,7 +117,7 @@ contract sdc {
             return new_a.votes.length;
         }
         else{
-            return new_a.objections[_num].votes.length;
+            return new_a.objection.votes.length;
         }
     }
 
@@ -114,47 +126,65 @@ contract sdc {
     }
 
     function create_objection(string memory _s) external payable
-    not_owner() {
+    not_owner() active() {
         require(msg.value == 5, "To create an objection, you should pay 5 wei"); // owner needs the money to create objection
         new_a.current_objections += 1;
-        new_a.objections[new_a.current_objections].o_owner = payable(msg.sender);
-        new_a.objections[new_a.current_objections].o_string = _s;
-        new_a.objections[new_a.current_objections].exist = true;
+        new_a.objection.o_owner = payable(msg.sender);
+        new_a.objection.o_string = _s;
+        new_a.objection.exist = true;
         contract_value += 5;
     }
 
-    function delete_objection(uint _num) private
-    objection_exist(_num) {
-        /*will be called privately by contract when objection timestamp is done*/
-        new_a.current_objections -= 1;
-        new_a.objections[_num].exist = false;
-    }
-
-    function pay_dividends() private {
-        payed_dividends = true;
-        evaluate_winners();
-        for(uint i = 0; i < voters.length; i++) { // pay winner voters the money they've put in
-            payable(voters[i]).transfer(money_owned[voters[i]]);
-            contract_value -= money_owned[voters[i]];
-        }
-        // pays half the profit (losers' money) to owner
-        owner.transfer(contract_value / 2);
-        contract_value /= 2;
-
-        for(uint i = 0; i < new_a.votes.length; i++) { //distributes the rest of the profit to voters of the winning affirmation
-            payable(new_a.votes[i]).transfer(contract_value / new_a.votes.length);
-            contract_value -= (contract_value / new_a.votes.length);
-        }
-    }
-
-    function evaluate_winners() private {
+    function evaluate_winners() private active() {
         // see who won the objection(s) and/or affirmation and update money_owned
+        uint total_owned;
+        if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
+            // updates money_owned 
+            for(uint i = 0; i < new_a.objection.votes.length; i++) {
+                money_owned[new_a.objection.votes[i]] += 1;
+                total_owned += 1;
+            }
+            money_owned[new_a.objection.o_owner] += 5;
+            total_owned += 5;
+        }
+        else { //affirmation has more votes
+            // updates money_owned 
+            for(uint i = 0; i < new_a.votes.length; i++) {
+                money_owned[new_a.votes[i]] += 1;
+                total_owned += 1;
+            }
+            money_owned[owner] += 5;
+            total_owned += 5;
+        }
+        uint dividends;
+        dividends = contract_value - total_owned;
+        if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
+            // updates money_owned
+            money_owned[new_a.objection.o_owner] += dividends/2; // statement owner receives half earnings
+            dividends /= 2;
+            for(uint i = 0; i < new_a.objection.votes.length; i++) {
+                money_owned[new_a.objection.votes[i]] += (dividends / new_a.objection.votes.length);
+                dividends -= (dividends / new_a.objection.votes.length);
+            }
+            money_owned[new_a.objection.o_owner] += dividends; // statement owner receives leftovers
+        }
+        else { //affirmation has more votes
+            // updates money_owned
+            money_owned[owner] += dividends/2; // statement owner receives half earnings
+            dividends /= 2;
+            for(uint i = 0; i < new_a.votes.length; i++) {
+                money_owned[new_a.votes[i]] += (dividends / new_a.votes.length);
+                dividends -= (dividends / new_a.votes.length);
+            }
+            money_owned[owner] += dividends; // statement owner receives leftovers
+        }
+        contract_value = 0;
+        new_a.active = false;
     }
 
-    function should_pay() public {
+    function should_pay() public active() {
         // test if it's time to pay dividends
-        if(block.timestamp > closedAt && payed_dividends == false)
-            pay_dividends();
+        if(block.timestamp > closedAt && payed_dividends == false) 
+            evaluate_winners();
     }
 }
-
