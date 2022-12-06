@@ -38,6 +38,10 @@ contract sdc {
     uint public contract_value;     // how much money this contract is holding
     bool public payed_dividends;    // has this contract payed its dividends?
 
+    event print_money( 
+        address indexed _from, 
+        uint256 _value 
+    );
 
     constructor(string memory _str) payable {
         owner = payable(msg.sender);
@@ -76,8 +80,8 @@ contract sdc {
         _;
     }
 
-    function get_money_owned(address _adr) external view returns (uint){
-        return money_owned[_adr];
+    function get_money_owned(address _adr) external {
+        emit print_money(_adr, money_owned[_adr]);
     }
 
     function get_statement(uint _num) external view
@@ -93,9 +97,7 @@ contract sdc {
     function vote(uint _num) public payable
     objection_exist(_num) can_vote(_num) active() {
         require(msg.value == 1, "To vote you should pay 1 wei"); // owner needs the money to vote
-
-        // tests: is the affirmation done? should I pay the winners?
-        should_pay();
+        require(block.timestamp > closedAt, "affirmation expired");
 
         if(already_voted[msg.sender] == false)
             contract_value += 1;
@@ -137,7 +139,7 @@ contract sdc {
 
     function evaluate_winners() private active() {
         // see who won the objection(s) and/or affirmation and update money_owned
-        uint total_owned;
+        uint total_owned = 0;
         if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
             // updates money_owned 
             for(uint i = 0; i < new_a.objection.votes.length; i++) {
@@ -158,24 +160,27 @@ contract sdc {
         }
         uint dividends;
         dividends = contract_value - total_owned;
+        total_owned = 0;
         if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
             // updates money_owned
             money_owned[new_a.objection.o_owner] += dividends/2; // statement owner receives half earnings
-            dividends /= 2;
+            dividends -= (dividends/2);
             for(uint i = 0; i < new_a.objection.votes.length; i++) {
                 money_owned[new_a.objection.votes[i]] += (dividends / new_a.objection.votes.length);
-                dividends -= (dividends / new_a.objection.votes.length);
+                total_owned += (dividends / new_a.objection.votes.length);
             }
+            dividends -= total_owned;
             money_owned[new_a.objection.o_owner] += dividends; // statement owner receives leftovers
         }
         else { //affirmation has more votes
             // updates money_owned
             money_owned[owner] += dividends/2; // statement owner receives half earnings
-            dividends /= 2;
+            dividends -= (dividends/2);
             for(uint i = 0; i < new_a.votes.length; i++) {
                 money_owned[new_a.votes[i]] += (dividends / new_a.votes.length);
-                dividends -= (dividends / new_a.votes.length);
+                total_owned += (dividends / new_a.votes.length);
             }
+            dividends -= total_owned;
             money_owned[owner] += dividends; // statement owner receives leftovers
         }
         contract_value = 0;
