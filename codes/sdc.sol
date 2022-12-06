@@ -45,12 +45,12 @@ contract sdc {
 
     constructor(string memory _str) payable {
         owner = payable(msg.sender);
-        require(msg.value == 5, "To create an affirmation, you should pay 5 wei"); // owner needs the money to create affirmation
+        require(msg.value == 5000000000000000000, "To create an affirmation, you should pay 5 ether"); // owner needs the money to create affirmation
         createdAt = block.timestamp;
         new_a.active = true; //active during timestamp
         new_a.a_string = _str;
         new_a.current_objections = 0; //0 current objections
-        contract_value = 5;
+        contract_value = 5000000000000000000;
         //closedAt = createdAt + 2 days;
         closedAt = createdAt + 1 minutes; //just for testing
     }
@@ -96,11 +96,11 @@ contract sdc {
 
     function vote(uint _num) public payable
     objection_exist(_num) can_vote(_num) active() {
-        require(msg.value == 1, "To vote you should pay 1 wei"); // owner needs the money to vote
-        require(block.timestamp > closedAt, "affirmation expired");
+        require(msg.value == 1000000000000000000, "To vote you should pay 1 ether"); // owner needs the money to vote
+        require(block.timestamp < closedAt, "affirmation expired");
 
         if(already_voted[msg.sender] == false)
-            contract_value += 1;
+            contract_value += 1000000000000000000;
         //address cannot vote for another objection
         if(_num == 0){
             new_a.votes.push(msg.sender);
@@ -129,12 +129,12 @@ contract sdc {
 
     function create_objection(string memory _s) external payable
     not_owner() active() {
-        require(msg.value == 5, "To create an objection, you should pay 5 wei"); // owner needs the money to create objection
-        new_a.current_objections += 1;
+        require(msg.value == 5000000000000000000, "To create an objection, you should pay 5 ether"); // owner needs the money to create objection
+        new_a.current_objections += 1000000000000000000;
         new_a.objection.o_owner = payable(msg.sender);
         new_a.objection.o_string = _s;
         new_a.objection.exist = true;
-        contract_value += 5;
+        contract_value += 5000000000000000000;
     }
 
     function evaluate_winners() private active() {
@@ -143,20 +143,20 @@ contract sdc {
         if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
             // updates money_owned 
             for(uint i = 0; i < new_a.objection.votes.length; i++) {
-                money_owned[new_a.objection.votes[i]] += 1;
-                total_owned += 1;
+                money_owned[new_a.objection.votes[i]] += 1000000000000000000;
+                total_owned += 1000000000000000000;
             }
-            money_owned[new_a.objection.o_owner] += 5;
-            total_owned += 5;
+            money_owned[new_a.objection.o_owner] += 5000000000000000000;
+            total_owned += 5000000000000000000;
         }
         else { //affirmation has more votes
             // updates money_owned 
             for(uint i = 0; i < new_a.votes.length; i++) {
-                money_owned[new_a.votes[i]] += 1;
-                total_owned += 1;
+                money_owned[new_a.votes[i]] += 1000000000000000000;
+                total_owned += 1000000000000000000;
             }
-            money_owned[owner] += 5;
-            total_owned += 5;
+            money_owned[owner] += 5000000000000000000;
+            total_owned += 5000000000000000000;
         }
         uint dividends;
         dividends = contract_value - total_owned;
@@ -191,5 +191,15 @@ contract sdc {
         // test if it's time to pay dividends
         if(block.timestamp > closedAt && payed_dividends == false) 
             evaluate_winners();
+    }
+
+    function withdraw() external {
+        uint amount = money_owned[msg.sender];
+        if (amount > 0) {
+            
+            money_owned[msg.sender] = 0;
+
+            payable(msg.sender).transfer(amount);
+        }
     }
 }
