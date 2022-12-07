@@ -95,19 +95,28 @@ contract sdc {
 
     function vote(uint _num) public payable
     objection_exist(_num) can_vote(_num) active() {
-        require(msg.value == 1000000000000000000, "To vote you should pay 1 ether"); // owner needs the money to vote
+        require(msg.value == 1000000000000000000 || already_voted[msg.sender] == true, "To vote you should pay 1 ether"); // owner needs the money to vote
         require(block.timestamp < closedAt, "affirmation expired"); // affirmation should be active
 
-        if(already_voted[msg.sender] == false)
+        if(already_voted[msg.sender] == false) {
             contract_value += 1000000000000000000;
-        //address cannot vote for another objection
+            already_voted[msg.sender] = true;
+        }
+        else {
+            // already voted for affirmation and is changing to objection
+            for(uint i = 0; i < new_a.votes.length; i++) {
+                if(new_a.votes[i] == msg.sender) {
+                    new_a.votes[i] = new_a.votes[new_a.votes.length - 1];
+                    new_a.votes.pop();
+                }
+            }
+        }
         if(_num == 0){
             new_a.votes.push(msg.sender);
         }
         else{
             new_a.objection.votes.push(msg.sender);
         }
-        already_voted[msg.sender] = true;
         statement_voted[msg.sender] = _num;
         voters.push(msg.sender);
     }
@@ -139,6 +148,7 @@ contract sdc {
 
     function evaluate_winners() private active() {
         // see who won the objection(s) and/or affirmation and update money_owned
+        payed_dividends = true;
         uint total_owned = 0;
         if(new_a.objection.votes.length > new_a.votes.length){ // objection has more votes
             // updates money_owned 
