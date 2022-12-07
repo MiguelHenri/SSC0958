@@ -25,11 +25,6 @@ contract sdc {
         uint current_objections;    // number of current objections
     }
 
-    //addresses (users) will have both data
-    mapping(address => bool) already_voted;     // logs which users have voted
-    mapping(address => uint) statement_voted;   // logs in which statement they've voted to
-    mapping(address => uint) money_owned;       // logs how much money is owned to each person
-
     address payable public owner;   // who stated this affirmation
     uint public createdAt;          // when it was created
     uint public closedAt;           // when it should close
@@ -37,6 +32,11 @@ contract sdc {
     address[] voters;               // who has voted in this contract (affirmation + objections)
     uint public contract_value;     // how much money this contract is holding
     bool public payed_dividends;    // has this contract payed its dividends?
+
+    //addresses (users) will have both data
+    mapping(address => bool) already_voted;     // logs which users have voted
+    mapping(address => uint) statement_voted;   // logs in which statement they've voted to
+    mapping(address => uint) money_owned;       // logs how much money is owned to each person
 
     event print_money( 
         address indexed _from, 
@@ -66,7 +66,7 @@ contract sdc {
     }
 
     modifier objection_exist(uint _num) {
-        require(new_a.objection.exist == true, "objection does not exist");
+        require((new_a.objection.exist == true || new_a.active == true), "objection does not exist");
         _;
     }
 
