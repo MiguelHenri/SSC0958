@@ -2,7 +2,6 @@
 // Version of compiler
 pragma solidity >=0.7.0 <0.9.0;
 
-//contract sdc platform??
 //sdc v2: only affirmation and one objection
 
 //contract == new affirmation
@@ -65,7 +64,7 @@ contract sdc {
         _;
     }
 
-    modifier objection_exist(uint _num) {
+    modifier objection_exist(uint _num) { // needed for more objections
         require((new_a.objection.exist == true || new_a.active == true), "objection does not exist");
         _;
     }
@@ -130,6 +129,7 @@ contract sdc {
     function create_objection(string memory _s) external payable
     not_owner() active() {
         require(msg.value == 5000000000000000000, "To create an objection, you should pay 5 ether"); // owner needs the money to create objection
+        require(new_a.objection.exist == false, "Objection already exists"); // for one objection only
         new_a.current_objections += 1;
         new_a.objection.o_owner = payable(msg.sender);
         new_a.objection.o_string = _s;
