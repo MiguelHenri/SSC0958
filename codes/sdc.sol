@@ -52,7 +52,7 @@ contract sdc {
         new_a.current_objections = 0; //0 current objections
         contract_value = 5000000000000000000;
         //closedAt = createdAt + 2 days;
-        closedAt = createdAt + 1 minutes; //just for testing
+        closedAt = createdAt + 2 minutes; //just for testing
     }
 
     modifier is_owner() {
@@ -97,7 +97,7 @@ contract sdc {
     function vote(uint _num) public payable
     objection_exist(_num) can_vote(_num) active() {
         require(msg.value == 1000000000000000000, "To vote you should pay 1 ether"); // owner needs the money to vote
-        require(block.timestamp < closedAt, "affirmation expired");
+        require(block.timestamp < closedAt, "affirmation expired"); // affirmation should be active
 
         if(already_voted[msg.sender] == false)
             contract_value += 1000000000000000000;
@@ -116,21 +116,21 @@ contract sdc {
     function get_votes(uint _num) external view
     objection_exist(_num) returns(uint) {
         if(_num == 0){
-            return new_a.votes.length;
+            return new_a.votes.length; // returns affirmation's number of votes
         }
         else{
-            return new_a.objection.votes.length;
+            return new_a.objection.votes.length; // returns objection's number of votes
         }
     }
 
     function current_objections() external view returns(uint) {
-        return new_a.current_objections;
+        return new_a.current_objections; // returns number of current objections
     }
 
     function create_objection(string memory _s) external payable
     not_owner() active() {
         require(msg.value == 5000000000000000000, "To create an objection, you should pay 5 ether"); // owner needs the money to create objection
-        new_a.current_objections += 1000000000000000000;
+        new_a.current_objections += 1;
         new_a.objection.o_owner = payable(msg.sender);
         new_a.objection.o_string = _s;
         new_a.objection.exist = true;
@@ -194,6 +194,7 @@ contract sdc {
     }
 
     function withdraw() external {
+        // users can withdraw amount won
         uint amount = money_owned[msg.sender];
         if (amount > 0) {
             
