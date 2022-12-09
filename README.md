@@ -1,7 +1,7 @@
 # 💰 SSC0958
 Criptocurrencies and Blockchain
 # 📖 Summary
-Learning to use solidity in smart contracts
+👉 Learning to use solidity in smart contracts
 
 :warning: CODE BEING TRANSLATED TO ENGLISH :warning:
 
