@@ -3,7 +3,7 @@ Criptocurrencies and Blockchain
 # 📖 Summary
 Learning to use solidity in smart contracts
 
-CODE BEING TRANSLATED TO ENGLISH :warning: ⚠
+:warning: CODE BEING TRANSLATED TO ENGLISH :warning:
 
 Projects:
 - `Miguelcoins`: basic criptocurrency implementation, with functions such as buying, selling and transferring. 
