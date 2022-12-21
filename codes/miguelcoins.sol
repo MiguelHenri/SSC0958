@@ -6,42 +6,42 @@ pragma solidity ^0.5.0;
 
 contract miguelcoin_ico {
 
-    // Imprimindo o número máximo de miguelcoins à venda
+    // max miguelcoins for sale
     uint public max_miguelcoins = 1000000000000;
 
-    // Imprimindo a taxa de conversão de USD para miguelcoins
+    // usd to miguelcoins conversion rate
     uint public usd_to_miguelcoins = 13671894;
 
-    // Imprimindo o número total de miguelcoins que foram comprados por investidores
+    // the total number of miguelcoins that have been bought by investors
     uint public total_miguelcoins_bought = 0;
 
-    // Mapeamento do endereço do investidor para seu patrimônio em miguelcoins para USD
+    // mapping from the investor address to its equity in miguelcoins / USD
     mapping(address => uint) equity_miguelcoins;
     mapping(address => uint) equity_usd;
 
-    // Verificando se um investidor pode comprar miguelcoins
+    // checking if an investor can buy miguelcoins
     modifier can_buy_miguelcoins(uint usd_invested) {
         require (usd_invested * usd_to_miguelcoins + total_miguelcoins_bought <= max_miguelcoins);
         _;
     }
 
-    // Verificando se um investidor pode vender miguelcoins
+    // checking if an investor can sell miguelcoins
     modifier can_sell_miguelcoins(uint miguelcoins_sold) {
         require (equity_miguelcoins[msg.sender] >= miguelcoins_sold, "no money");
         _;
     }
 
-    // Obtendo o patrimônio em miguelcoins de um investidor
+    // getting the equity in miguelcoins of an investor
     function equity_in_miguelcoins(address investor) external view returns (uint) {
         return equity_miguelcoins[investor];
     }
 
-    // Obtendo o patrimônio em dólares de um investidor
+    // getting the equity in USD of an investor
     function equity_in_usd(address investor) external view returns (uint) {
         return equity_usd[investor];
     }
 
-    // Comprando miguelcoins
+    // buying miguelcoins
     function buy_miguelcoins(uint usd_invested) external
     can_buy_miguelcoins(usd_invested) {
         uint miguelcoins_bought = usd_invested * usd_to_miguelcoins;
@@ -50,7 +50,7 @@ contract miguelcoin_ico {
         total_miguelcoins_bought += miguelcoins_bought;
     }
 
-    // Vendendo miguelcoins
+    // selling miguelcoins
     function sell_miguelcoins(uint miguelcoins_sold) external 
     can_sell_miguelcoins(miguelcoins_sold) {
         equity_miguelcoins[msg.sender] -= miguelcoins_sold;
@@ -58,7 +58,7 @@ contract miguelcoin_ico {
         total_miguelcoins_bought -= miguelcoins_sold;
     }
 
-    // Transferindo miguelcoins
+    // transferring miguelcoins
     function transfer_miguelcoins(uint miguelcoins, address receiver) external
     can_sell_miguelcoins(miguelcoins) {
         equity_miguelcoins[msg.sender] -= miguelcoins;
