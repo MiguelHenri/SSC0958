@@ -29,7 +29,8 @@ contract jocoin_ico {
         // Retirada de, no máximo, 10% do saldo
         require (jocoins_sold <= equity_jocoins[investor]/10, "valor maior que 10% do saldo");
         // Venda apenas após as 22h
-        uint _time = block.timestamp % (24*60*60); // horario em segundos
+        uint _time = block.timestamp - 3*60*60; // mudando para BRT
+        _time = _time % (24*60*60); // horario em segundos
         require (_time >= 22*60*60, "a venda só é permitida após as 22h");
         _;
     }
