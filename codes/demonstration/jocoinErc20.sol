@@ -11,7 +11,7 @@ contract jocoinErc20 {
     mapping(address => uint) private equity_usd;
 
     // Número máximo de jocoins à venda
-    uint256 private max_jocoins;
+    uint256 private _totalSupply;
 
     // Padrão Erc20
     string private _name;
@@ -21,6 +21,7 @@ contract jocoinErc20 {
     constructor() {
         _name = "Jocoin";
         _symbol = "JOC";
+        _totalSupply = 1e6;
     }
 
     // Taxa de conversão de USD para jocoins
@@ -39,9 +40,18 @@ contract jocoinErc20 {
         return _symbol;
     }
 
+    // Erc20 TotalSupply
+    function totalSupply() public view returns(uint256) {
+        return _totalSupply;
+    }
+
+    // Erc20 BalanceOf
+
+    // Erc20 Transfer
+
     // Verificando se um investidor pode comprar jocoins
     modifier can_buy_jocoins(uint usd_invested) {
-        require (usd_invested * usd_to_jocoins + total_jocoins_bought <= max_jocoins, "jocoins indisponiveis");
+        require (usd_invested * usd_to_jocoins + total_jocoins_bought <= _totalSupply, "jocoins indisponiveis");
         _;
     }
 
